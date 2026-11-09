@@ -1,0 +1,13 @@
+# Credenciais e configurações locais
+.env
+
+# Arquivos gerados pelo processo
+/downloads/
+/exports/
+
+# Arquivos temporários do Python
+__pycache__/
+*.py[cod]
+
+# Configurações locais do editor
+.vscode/
