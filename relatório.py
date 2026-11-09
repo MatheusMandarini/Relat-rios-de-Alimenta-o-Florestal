@@ -78,6 +78,7 @@ def create_driver():
 
 def login(driver):
     """Faço o login usando as credenciais disponíveis no ambiente do sistema."""
+    print("[1/7] Fazendo login no Checklist Fácil...")
     login_name = os.getenv("LOGIN_NAME")
     login_password = os.getenv("LOGIN_PASSWORD")
     if not login_name or not login_password:
@@ -105,6 +106,7 @@ def login(driver):
         driver,
         wait_for(driver, EC.element_to_be_clickable((By.CSS_SELECTOR, "button[type='submit']"))),
     )
+    print("[1/7] Login enviado.")
 
 
 def set_date_field(field, value):
@@ -201,12 +203,17 @@ def select_filter_and_period(driver, start_date, end_date):
 
 def open_filtered_listing(driver, start_date, end_date):
     """Abro a listagem de avaliações e preparo o filtro do relatório mensal."""
+    print(
+        f"[2/7] Abrindo os registros de {start_date:%d/%m/%Y} "
+        f"até {end_date:%d/%m/%Y}..."
+    )
     wait_for(
         driver,
         EC.element_to_be_clickable((By.XPATH, "//a[@class='menu-link mdc-list-item']")),
     ).click()
     time.sleep(2)
     select_filter_and_period(driver, start_date, end_date)
+    print("[2/7] Filtro aplicado.")
 
 
 def has_results(driver):
@@ -396,12 +403,14 @@ def download_from_row(driver, button):
 
 def export_report(driver):
     """Seleciono os registros, gero o XLSX e faço o download do resultado."""
+    print("[3/7] Preparando os registros para exportação...")
     set_page_size_200(driver)
     check_all = wait_for(
         driver,
         EC.presence_of_element_located((By.CSS_SELECTOR, "input.js-check-all#checkbox-1")),
     )
     js_click(driver, check_all)
+    print("[4/7] Registros selecionados.")
     js_click(driver, wait_for(driver, EC.element_to_be_clickable((By.ID, "button-bulk-export"))))
     js_click(
         driver,
@@ -413,12 +422,16 @@ def export_report(driver):
         ),
     )
     select_xlsx_layout(driver)
+    print("[5/7] Formato XLSX selecionado.")
     time.sleep(1)
     export_button = wait_for(driver, _visible_export_button, 15)
     baseline_id = latest_queue_id(driver)
     js_click(driver, export_button)
+    print("[6/7] Exportação enviada. Aguardando o arquivo ficar pronto...")
     open_queue_history(driver)
-    return download_from_row(driver, wait_for_new_export(driver, baseline_id))
+    downloaded_path = download_from_row(driver, wait_for_new_export(driver, baseline_id))
+    print("[6/7] Download concluído.")
+    return downloaded_path
 
 
 def monthly_destination(day):
@@ -428,6 +441,7 @@ def monthly_destination(day):
 
 def save_monthly_report(downloaded_path, day):
     """Substituo o arquivo mensal antigo pelo relatório que acabou de baixar."""
+    print("[7/7] Salvando o relatório no destino configurado...")
     destination = monthly_destination(day)
     destination.parent.mkdir(parents=True, exist_ok=True)
     os.replace(downloaded_path, destination)
@@ -437,6 +451,7 @@ def save_monthly_report(downloaded_path, day):
 
 def main():
     """Executo o processo completo para o mês atual."""
+    print("Início do processo de atualização do relatório.")
     today = date.today()
     start_date = today.replace(day=1)
     driver = create_driver()
@@ -450,6 +465,7 @@ def main():
             )
             return
         save_monthly_report(export_report(driver), today)
+        print("Processo concluído com sucesso.")
     finally:
         safe_quit(driver)
 
