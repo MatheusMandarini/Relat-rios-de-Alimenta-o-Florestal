@@ -28,7 +28,7 @@ POLL_INTERVAL = int(os.getenv("QUEUE_POLL_INTERVAL", "10"))
 POLL_TIMEOUT = int(os.getenv("QUEUE_POLL_TIMEOUT", "600"))
 DOWNLOAD_TIMEOUT = int(os.getenv("DOWNLOAD_TIMEOUT", "120"))
 DOWNLOAD_DIR = Path(os.getenv("DOWNLOAD_DIR", "downloads")).resolve()
-EXPORT_ROOT = Path(os.getenv("EXPORT_DESTINATION_DIR", "exports")).resolve()
+EXPORT_ROOT = Path(os.getenv("BASE_DIR", "exports")).resolve()
 HEADLESS = os.getenv("HEADLESS", "1") == "1"
 
 DOWNLOAD_BUTTON_CSS = "a.js-row-download-button"
