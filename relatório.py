@@ -5,6 +5,7 @@ entender, ajustar e descobrir em qual etapa algo deu errado.
 """
 
 import os
+import shutil
 import time
 from datetime import date
 from pathlib import Path
@@ -232,14 +233,19 @@ def has_results(driver):
 
 
 def set_page_size_200(driver):
-    """Tento mostrar até 200 registros para exportar tudo de uma vez."""
+    """Seleciono 200 registros por página quando a paginação estiver disponível."""
+    dropdown_selectors = (
+        "span[data-dropdown-target='#pagination-dropdown'], "
+        "*[data-dropdown-target='#pagination-dropdown'], "
+        "*[data-target='#pagination-dropdown']"
+    )
     try:
         dropdown = wait_for(
             driver,
             EC.presence_of_element_located(
-                (By.CSS_SELECTOR, "span[data-dropdown-target='#pagination-dropdown']")
+                (By.CSS_SELECTOR, dropdown_selectors)
             ),
-            20,
+            5,
         )
         js_click(driver, dropdown)
         option = wait_for(
@@ -247,7 +253,7 @@ def set_page_size_200(driver):
             EC.element_to_be_clickable(
                 (
                     By.XPATH,
-                    "//a[contains(@class, 'mdc-list-item__text') and normalize-space()='200']",
+                    "//*[self::a or self::li or self::button][normalize-space()='200']",
                 )
             ),
             10,
@@ -255,7 +261,9 @@ def set_page_size_200(driver):
         js_click(driver, option)
         time.sleep(3)
     except TimeoutException:
-        print("AVISO: paginação de 200 não encontrada; usando a paginação atual.")
+        if len(driver.find_elements(By.CSS_SELECTOR, DOWNLOAD_BUTTON_CSS)) <= 200:
+            return
+        raise RuntimeError("Não consegui selecionar 200 itens por página.")
 
 
 def _visible_export_button(driver):
@@ -272,45 +280,43 @@ def _visible_export_button(driver):
 def select_xlsx_layout(driver):
     """Escolho o formato XLSX em que cada item fica separado em uma coluna."""
     def visible_select_box(d):
-        """Localizo o seletor de layout que estiver aparecendo na tela."""
+        """Localizo o seletor de layout específico da exportação XLSX."""
         for element in d.find_elements(By.CSS_SELECTOR, "div.js-select-full-field"):
             try:
-                if element.is_displayed():
+                selected = element.find_element(
+                    By.CSS_SELECTOR, "input.js-form-input"
+                ).get_attribute("value")
+                if element.is_displayed() and selected == "evaluation":
                     return element
             except StaleElementReferenceException:
                 continue
         return False
 
-    try:
-        select_box = wait_for(driver, visible_select_box, 8)
-    except TimeoutException:
-        print(
-            "AVISO: o seletor de layout XLSX não foi exibido; "
-            "seguindo com o formato padrão do Checklist Fácil."
-        )
-        return
+    select_box = wait_for(driver, visible_select_box, 10)
 
     toggle = select_box.find_element(By.CSS_SELECTOR, "button.options-toggle")
     js_click(driver, toggle)
+    def visible_column_option(d):
+        """Localizo a opção em colunas que estiver realmente aberta na tela."""
+        for element in d.find_elements(
+            By.CSS_SELECTOR, "li[data-value='evaluation_column_items']"
+        ):
+            if element.is_displayed() and element.is_enabled():
+                return element
+        return False
+
+    option = wait_for(driver, visible_column_option, 10)
+    driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", option)
     try:
-        option = wait_for(
-            driver,
-            EC.element_to_be_clickable(
-                (By.CSS_SELECTOR, "li[data-value='evaluation_column_items']")
-            ),
-            10,
-        )
-    except TimeoutException as error:
-        print(
-            "AVISO: a opção 'Itens em colunas' não está disponível nesta exportação; "
-            "seguindo com o formato exibido pelo Checklist Fácil."
-        )
-        return
-    js_click(driver, option)
-    time.sleep(0.5)
+        ActionChains(driver).move_to_element(option).click().perform()
+    except Exception:
+        js_click(driver, option)
     selected = select_box.find_element(By.CSS_SELECTOR, "input.js-form-input")
-    if selected.get_attribute("value") != "evaluation_column_items":
-        raise RuntimeError("Não consegui selecionar o formato 'Itens em colunas'.")
+    wait_for(
+        driver,
+        lambda d: selected.get_attribute("value") == "evaluation_column_items",
+        5,
+    )
 
 
 def read_queue_rows(driver):
@@ -444,7 +450,7 @@ def save_monthly_report(downloaded_path, day):
     print("[7/7] Salvando o relatório no destino configurado...")
     destination = monthly_destination(day)
     destination.parent.mkdir(parents=True, exist_ok=True)
-    os.replace(downloaded_path, destination)
+    shutil.move(str(downloaded_path), str(destination))
     print(f"Relatório atualizado: {destination}")
     return destination
 
