@@ -1,6 +1,5 @@
-# Credenciais e configurações locais
+# Credenciais locais nunca devem ser versionadas
 .env
-.env.example
 
 # Arquivos gerados pelo processo
 /downloads/

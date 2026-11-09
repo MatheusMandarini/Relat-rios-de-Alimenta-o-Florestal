@@ -9,7 +9,6 @@ import time
 from datetime import date
 from pathlib import Path
 
-from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.common.exceptions import StaleElementReferenceException, TimeoutException
 from selenium.webdriver.common.action_chains import ActionChains
@@ -18,8 +17,6 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-
-load_dotenv()
 
 LOGIN_URL = "https://spa.checklistfacil.com.br/login?lang=pt-br"
 QUEUES_URL = "https://app.checklistfacil.com.br/settings/queues"
@@ -77,11 +74,13 @@ def create_driver():
 
 
 def login(driver):
-    """Faço o login usando as credenciais guardadas no arquivo .env."""
+    """Faço o login usando as credenciais disponíveis no ambiente do sistema."""
     login_name = os.getenv("LOGIN_NAME")
     login_password = os.getenv("LOGIN_PASSWORD")
     if not login_name or not login_password:
-        raise RuntimeError("Defina LOGIN_NAME e LOGIN_PASSWORD no arquivo .env.")
+        raise RuntimeError(
+            "Defina LOGIN_NAME e LOGIN_PASSWORD nas variáveis de ambiente."
+        )
 
     driver.get(LOGIN_URL)
     user_field = wait_for(

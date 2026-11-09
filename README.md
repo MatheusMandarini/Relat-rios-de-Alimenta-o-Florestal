@@ -19,18 +19,19 @@ python -m pip install selenium python-dotenv
 
 ## Configuração
 
-Crie um arquivo `.env` na raiz do projeto. Esse arquivo é local e não deve ser enviado ao GitHub:
+As configurações são lidas diretamente das variáveis de ambiente do sistema. Assim, nenhuma credencial fica salva em arquivo ou no código.
 
-```env
-LOGIN_NAME=seu.usuario@empresa.com
-LOGIN_PASSWORD=sua_senha
+No PowerShell, defina as variáveis antes de executar:
 
-DOWNLOAD_DIR=downloads
-EXPORT_DESTINATION_DIR=exports
-HEADLESS=1
-QUEUE_POLL_INTERVAL=10
-QUEUE_POLL_TIMEOUT=600
-DOWNLOAD_TIMEOUT=120
+```powershell
+$env:LOGIN_NAME = "seu.usuario@empresa.com"
+$env:LOGIN_PASSWORD = "sua_senha"
+$env:DOWNLOAD_DIR = "downloads"
+$env:EXPORT_DESTINATION_DIR = "exports"
+$env:HEADLESS = "1"
+$env:QUEUE_POLL_INTERVAL = "10"
+$env:QUEUE_POLL_TIMEOUT = "600"
+$env:DOWNLOAD_TIMEOUT = "120"
 ```
 
 `EXPORT_DESTINATION_DIR` pode ser uma pasta local ou um caminho de rede ao qual você tenha acesso.
@@ -45,7 +46,6 @@ O script busca os registros do primeiro dia do mês até a data atual. Quando en
 
 ## Segurança
 
-- Nunca publique o arquivo `.env`.
 - Não coloque senhas, tokens ou caminhos corporativos diretamente no código.
-- O arquivo `.env.example` local está ignorado pelo Git para evitar envios acidentais.
+- Prefira variáveis de ambiente configuradas na sessão ou no gerenciador de credenciais do sistema.
 - Se uma senha for exposta, troque-a imediatamente.
