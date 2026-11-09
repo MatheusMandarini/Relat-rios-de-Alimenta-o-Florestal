@@ -9,6 +9,7 @@ import time
 from datetime import date
 from pathlib import Path
 
+from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.common.exceptions import StaleElementReferenceException, TimeoutException
 from selenium.webdriver.common.action_chains import ActionChains
@@ -17,6 +18,8 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
+
+load_dotenv()
 
 LOGIN_URL = "https://spa.checklistfacil.com.br/login?lang=pt-br"
 QUEUES_URL = "https://app.checklistfacil.com.br/settings/queues"

@@ -1,3 +1,6 @@
+# Configuração local com credenciais
+.env
+
 # Arquivos gerados pelo processo
 /downloads/
 /exports/
