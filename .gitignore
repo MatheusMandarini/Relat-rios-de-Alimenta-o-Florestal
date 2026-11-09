@@ -1,5 +1,6 @@
 # Credenciais e configurações locais
 .env
+.env.example
 
 # Arquivos gerados pelo processo
 /downloads/
